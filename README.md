@@ -23,3 +23,12 @@ This is a design prototype created in Figma.
 ## Example Insight
 Input: Sleep = 6h, Energy = Low  
 Output: “Your energy dips after 2 PM, consider taking a short break.”
+
+## Error Handling
+
+The agent checks for invalid inputs such as missing or negative values and returns appropriate messages.
+
+## Example
+
+Input: sleep=5, energy=4, stress=6  
+Output: "Your energy may drop in the afternoon. Consider rest."

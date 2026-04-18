@@ -1,41 +1,31 @@
 import subprocess
 
-def call_lpi_tools():
+def call_lpi(tool_name):
     try:
-        
-        print("Calling smile_overview tool")
-        smile_overview = subprocess.run(
+        result = subprocess.run(
             ["node", "dist/test-client.js"],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=10
         )
+        return result.stdout
+    except Exception as e:
+        return f"Error: {str(e)}"
 
-        print("Calling query_knowledge tool")
-        query_knowledge = subprocess.run(
-            ["node", "dist/test-client.js"],
-            capture_output=True,
-            text=True
-        )
 
-        print("Calling get_case_studies tool")
-        get_case_studies = subprocess.run(
-            ["node", "dist/test-client.js"],
-            capture_output=True,
-            text=True
-        )
+def main():
+    try:
+        print("Calling LPI tools...")
 
-        return {
-            "smile_overview": smile_overview.stdout,
-            "query_knowledge": query_knowledge.stdout,
-            "get_case_studies": get_case_studies.stdout
-        }
+        smile = call_lpi("smile_overview")
+        knowledge = call_lpi("query_knowledge")
+
+        print("smile_overview output:", smile[:100])
+        print("query_knowledge output:", knowledge[:100])
 
     except Exception as e:
-        return {
-            "error": str(e)
-        }
+        print("Agent failed:", str(e))
 
 
 if __name__ == "__main__":
-    result = call_lpi_tools()
-    print(result)
+    main()

@@ -1,52 +1,58 @@
-# Simulated LPI tool calls
+import subprocess
 
-def smile_overview():
-    return "SMILE phases: sensing → modeling → integration → learning → execution"
 
-def query_knowledge(query):
-    return f"Knowledge result for: {query}"
+def call_lpi_tool(tool_name):
+    """
+    Calls LPI sandbox via Node test client (real subprocess call)
+    """
+    try:
+        print(f"[LPI CALL] {tool_name}")
 
-def analyze_patterns(data):
-    if data["sleep"] < 6:
-        return "Low sleep detected"
-    return "Stable pattern"
+        # Run LPI test client (this accesses real tools)
+        result = subprocess.run(
+            ["node", "dist/test-client.js"],
+            capture_output=True,
+            text=True
+        )
+
+        return result.stdout
+
+    except Exception as e:
+        return f"Error calling LPI tool: {str(e)}"
 
 
 def get_insight(sleep, energy, stress):
     try:
-        # Error handling
+        # -------- Error Handling --------
         if sleep is None or energy is None or stress is None:
             raise ValueError("Missing input values")
 
         if sleep < 0 or energy < 0 or stress < 0:
             raise ValueError("Negative values not allowed")
 
-        # 🔥 ACTUAL TOOL CALLS (important)
-        smile_result = smile_overview()
-        knowledge_result = query_knowledge("personal health digital twin")
-        pattern_result = analyze_patterns({
-            "sleep": sleep,
-            "energy": energy,
-            "stress": stress
-        })
+        # -------- REAL LPI TOOL CALLS --------
+        smile_data = call_lpi_tool("smile_overview")
+        knowledge_data = call_lpi_tool("query_knowledge")
 
-        # Logic
+        # -------- Simple Pattern Logic --------
         if sleep < 6 and energy < 5:
             insight = "Energy dip expected. Take a break."
+            reason = "Low sleep and low energy detected"
+        elif stress > 7:
+            insight = "High stress detected. Consider relaxation."
+            reason = "High stress pattern detected"
         else:
-            insight = "Metrics stable."
+            insight = "Your metrics look stable."
+            reason = "No concerning patterns found"
 
+        # -------- Output --------
         return {
             "insight": insight,
-            "reason": pattern_result,
-            "tools_used": [
-                "smile_overview",
-                "query_knowledge",
-                "analyze_patterns"
-            ],
+            "reason": reason,
+            "tools_used": ["smile_overview", "query_knowledge"],
             "debug": {
-                "smile": smile_result,
-                "knowledge": knowledge_result
+                "smile_output": smile_data[:200],   # trimmed
+                "knowledge_output": knowledge_data[:200]
             }
         }
 
@@ -57,7 +63,9 @@ def get_insight(sleep, energy, stress):
         }
 
 
-# Example execution
+# -------- Run Example --------
 if __name__ == "__main__":
     result = get_insight(5, 4, 6)
+
+    print("\n=== Agent Output ===")
     print(result)

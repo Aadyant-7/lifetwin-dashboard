@@ -1,5 +1,3 @@
-# lifetwin-dashboard
-
 # LifeTwin – Personal Digital Twin Dashboard
 
 This project represents a UI concept for a personal digital twin system.

@@ -1,27 +1,40 @@
-# Simple mock agent for LifeTwin
+# Simulated LPI tool calls
+
+def smile_overview():
+    return "SMILE: sensing → modeling → integration → learning → execution"
+
+def query_knowledge(query):
+    return f"Knowledge result for: {query}"
+
+def analyze_patterns(data):
+    if data["sleep"] < 6:
+        return "Low sleep detected"
+    return "Stable pattern"
+
 
 def get_insight(sleep, energy, stress):
-    # Basic error handling
+    # Error handling
     if sleep is None or energy is None or stress is None:
-        return "Invalid input: Missing values"
+        return "Error: Missing input values"
 
     if sleep < 0 or energy < 0 or stress < 0:
-        return "Invalid input: Values cannot be negative"
+        return "Error: Invalid negative values"
 
-    # Simulated LPI tool usage
-    tools_used = ["smile_overview", "query_knowledge", "analyze_patterns"]
+    # Tool usage
+    smile = smile_overview()
+    knowledge = query_knowledge("personal health digital twin")
+    pattern = analyze_patterns({"sleep": sleep})
 
-    # Basic logic
+    # Insight
     if sleep < 6 and energy < 5:
-        insight = "Your energy may drop in the afternoon. Consider rest."
-    elif stress > 7:
-        insight = "High stress detected. Try relaxation techniques."
+        insight = "Energy dip expected. Take a break."
     else:
-        insight = "Your metrics look stable."
+        insight = "Metrics look stable."
 
     return {
         "insight": insight,
-        "tools_used": tools_used
+        "reasoning": pattern,
+        "tools_used": ["smile_overview", "query_knowledge", "analyze_patterns"]
     }
 
 

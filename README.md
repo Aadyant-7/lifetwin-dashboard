@@ -32,3 +32,13 @@ The agent checks for invalid inputs such as missing or negative values and retur
 
 Input: sleep=5, energy=4, stress=6  
 Output: "Your energy may drop in the afternoon. Consider rest."
+
+## Code Example
+
+The agent calls multiple tools:
+
+- smile_overview()
+- query_knowledge()
+- analyze_patterns()
+
+It also includes error handling using try/except blocks to ensure stability.

@@ -1,15 +1,25 @@
 import subprocess
+import json
 
 
 def call_lpi_tool(tool_name):
     try:
-        result = subprocess.run(
-            ["node", "dist/test-client.js", tool_name],
-            capture_output=True,
-            text=True,
-            timeout=10
+        request = {
+            "tool": tool_name,
+            "input": {}
+        }
+
+        process = subprocess.Popen(
+            ["node", "dist/test-client.js"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
         )
-        return result.stdout
+
+        stdout, stderr = process.communicate(json.dumps(request), timeout=10)
+
+        return stdout
 
     except subprocess.TimeoutExpired:
         return "Timeout while calling LPI"
@@ -19,12 +29,12 @@ def call_lpi_tool(tool_name):
 
 def main():
     try:
-        smile_overview_output = call_lpi_tool("smile_overview")
-        query_knowledge_output = call_lpi_tool("query_knowledge")
+        smile_overview = call_lpi_tool("smile_overview")
+        query_knowledge = call_lpi_tool("query_knowledge")
 
-        combined_output = smile_overview_output + query_knowledge_output
+        result = smile_overview + query_knowledge
 
-        print(combined_output[:200])
+        print(result[:200])
 
     except Exception as e:
         print(f"Agent failed: {str(e)}")

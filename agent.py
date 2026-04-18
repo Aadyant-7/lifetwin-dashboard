@@ -1,71 +1,41 @@
 import subprocess
 
-
-def call_lpi_tool(tool_name):
-    """
-    Calls LPI sandbox via Node test client (real subprocess call)
-    """
+def call_lpi_tools():
     try:
-        print(f"[LPI CALL] {tool_name}")
-
-        # Run LPI test client (this accesses real tools)
-        result = subprocess.run(
+        
+        print("Calling smile_overview tool")
+        smile_overview = subprocess.run(
             ["node", "dist/test-client.js"],
             capture_output=True,
             text=True
         )
 
-        return result.stdout
+        print("Calling query_knowledge tool")
+        query_knowledge = subprocess.run(
+            ["node", "dist/test-client.js"],
+            capture_output=True,
+            text=True
+        )
 
-    except Exception as e:
-        return f"Error calling LPI tool: {str(e)}"
+        print("Calling get_case_studies tool")
+        get_case_studies = subprocess.run(
+            ["node", "dist/test-client.js"],
+            capture_output=True,
+            text=True
+        )
 
-
-def get_insight(sleep, energy, stress):
-    try:
-        # -------- Error Handling --------
-        if sleep is None or energy is None or stress is None:
-            raise ValueError("Missing input values")
-
-        if sleep < 0 or energy < 0 or stress < 0:
-            raise ValueError("Negative values not allowed")
-
-        # -------- REAL LPI TOOL CALLS --------
-        smile_data = call_lpi_tool("smile_overview")
-        knowledge_data = call_lpi_tool("query_knowledge")
-
-        # -------- Simple Pattern Logic --------
-        if sleep < 6 and energy < 5:
-            insight = "Energy dip expected. Take a break."
-            reason = "Low sleep and low energy detected"
-        elif stress > 7:
-            insight = "High stress detected. Consider relaxation."
-            reason = "High stress pattern detected"
-        else:
-            insight = "Your metrics look stable."
-            reason = "No concerning patterns found"
-
-        # -------- Output --------
         return {
-            "insight": insight,
-            "reason": reason,
-            "tools_used": ["smile_overview", "query_knowledge"],
-            "debug": {
-                "smile_output": smile_data[:200],   # trimmed
-                "knowledge_output": knowledge_data[:200]
-            }
+            "smile_overview": smile_overview.stdout,
+            "query_knowledge": query_knowledge.stdout,
+            "get_case_studies": get_case_studies.stdout
         }
 
     except Exception as e:
         return {
-            "error": str(e),
-            "message": "Invalid input provided"
+            "error": str(e)
         }
 
 
-# -------- Run Example --------
 if __name__ == "__main__":
-    result = get_insight(5, 4, 6)
-
-    print("\n=== Agent Output ===")
+    result = call_lpi_tools()
     print(result)

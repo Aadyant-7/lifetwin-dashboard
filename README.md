@@ -41,12 +41,12 @@ The agent calls multiple tools:
 
 It also includes error handling using try/except blocks to ensure stability.
 
-## LPI Tool Integration
+## LPI Tool Usage
 
-The agent uses subprocess to communicate with the LPI sandbox via Node.js.
+The agent explicitly calls LPI tools such as:
 
-It calls:
-- smile_overview
-- query_knowledge
+- smile_overview  
+- query_knowledge  
+- get_case_studies  
 
-These calls retrieve real outputs from the LPI system.
+These calls are made using subprocess to interact with the LPI sandbox.

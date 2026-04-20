@@ -1,0 +1,24 @@
+{
+  "name": "LifeTwin Agent",
+  "description": "A personal digital twin system that analyzes sleep, energy, and stress to generate explainable insights using LPI tools.",
+  "version": "1.0",
+  "author": "Aadyant Sood",
+  "tools": [
+    "smile_overview",
+    "query_knowledge",
+    "get_case_studies"
+  ],
+  "capabilities": [
+    "insight generation",
+    "pattern analysis",
+    "explainable reasoning"
+  ],
+  "input": {
+    "type": "text",
+    "description": "User lifestyle data or query"
+  },
+  "output": {
+    "type": "text",
+    "description": "Explainable health insights"
+  }
+}

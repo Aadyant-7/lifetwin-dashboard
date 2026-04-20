@@ -9,7 +9,6 @@ def call_tool(proc, tool_name, args=None):
         args = {}
 
     try:
-        # Detect if process already crashed
         if proc.poll() is not None:
             return "[ERROR] LPI server process crashed"
 
@@ -26,7 +25,6 @@ def call_tool(proc, tool_name, args=None):
         proc.stdin.write(json.dumps(request) + "\n")
         proc.stdin.flush()
 
-        # Timeout handling (5 seconds)
         ready, _, _ = select.select([proc.stdout], [], [], 5)
         if not ready:
             return "[ERROR] LPI server timeout"
@@ -57,7 +55,6 @@ def sanitize_output(output, fallback):
 
 def run():
     try:
-        # Handle empty input
         if len(sys.argv) < 2:
             user_query = "default query: digital twin health insights"
         else:
@@ -66,7 +63,6 @@ def run():
         if not user_query:
             user_query = "fallback query: sleep and energy"
 
-        # Start MCP server
         proc = subprocess.Popen(
             ["node", "dist/src/index.js"],
             stdin=subprocess.PIPE,
@@ -75,7 +71,11 @@ def run():
             text=True
         )
 
-        # INIT handshake
+        if proc.stderr:
+            err = proc.stderr.read()
+            if err:
+                print("[WARN] stderr detected:", err[:100])
+
         init = {
             "jsonrpc": "2.0",
             "id": 0,
@@ -97,28 +97,37 @@ def run():
         }) + "\n")
         proc.stdin.flush()
 
-        # 🔥 REAL MCP TOOL CALLS
-        smile = call_tool(proc, "smile_overview")
-        knowledge = call_tool(proc, "query_knowledge", {"query": user_query})
-        cases = call_tool(proc, "get_case_studies")
+        try:
+            smile = call_tool(proc, "smile_overview")
+            knowledge = call_tool(proc, "query_knowledge", {"query": user_query})
+            cases = call_tool(proc, "get_case_studies")
+            phase = call_tool(proc, "smile_phase_detail", {"phase": "sensing"})
+            topics = call_tool(proc, "list_topics")
+        except Exception as e:
+            print("[ERROR] Tool execution failed:", str(e))
+            smile = knowledge = cases = phase = topics = "[ERROR] execution failed"
 
-        # Safe termination
         proc.terminate()
         try:
             proc.wait(timeout=3)
         except subprocess.TimeoutExpired:
             proc.kill()
 
-        # Output validation
         smile = sanitize_output(smile, "[Fallback] Unable to retrieve SMILE overview")
         knowledge = sanitize_output(knowledge, "[Fallback] Knowledge unavailable")
         cases = sanitize_output(cases, "[Fallback] No case studies found")
+        phase = sanitize_output(phase, "[Fallback] Phase data unavailable")
+        topics = sanitize_output(topics, "[Fallback] Topics unavailable")
 
-        # Final output
+        if "[ERROR]" in smile or "[ERROR]" in knowledge or "[ERROR]" in cases:
+            print("[INFO] Fallback triggered due to tool errors")
+
         print("\n--- Agent Output ---\n")
         print(smile[:100])
         print(knowledge[:100])
         print(cases[:100])
+        print(phase[:100])
+        print(topics[:100])
 
     except Exception as e:
         print("[FATAL ERROR]", str(e))

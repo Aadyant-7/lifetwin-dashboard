@@ -1,10 +1,18 @@
 import json
 import subprocess
 import sys
+import select
 
 
-def call_tool(proc, tool_name, args={}):
+def call_tool(proc, tool_name, args=None):
+    if args is None:
+        args = {}
+
     try:
+        # Detect if process already crashed
+        if proc.poll() is not None:
+            return "[ERROR] LPI server process crashed"
+
         request = {
             "jsonrpc": "2.0",
             "id": 1,
@@ -17,6 +25,11 @@ def call_tool(proc, tool_name, args={}):
 
         proc.stdin.write(json.dumps(request) + "\n")
         proc.stdin.flush()
+
+        # Timeout handling (5 seconds)
+        ready, _, _ = select.select([proc.stdout], [], [], 5)
+        if not ready:
+            return "[ERROR] LPI server timeout"
 
         response = proc.stdout.readline()
 
@@ -36,6 +49,12 @@ def call_tool(proc, tool_name, args={}):
         return f"[ERROR] Tool call failed: {str(e)}"
 
 
+def sanitize_output(output, fallback):
+    if not output or "[ERROR]" in output or len(output.strip()) < 5:
+        return fallback
+    return output
+
+
 def run():
     try:
         # Handle empty input
@@ -47,6 +66,7 @@ def run():
         if not user_query:
             user_query = "fallback query: sleep and energy"
 
+        # Start MCP server
         proc = subprocess.Popen(
             ["node", "dist/src/index.js"],
             stdin=subprocess.PIPE,
@@ -55,7 +75,7 @@ def run():
             text=True
         )
 
-        # INIT
+        # INIT handshake
         init = {
             "jsonrpc": "2.0",
             "id": 0,
@@ -71,26 +91,31 @@ def run():
         proc.stdin.flush()
         proc.stdout.readline()
 
-        proc.stdin.write(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n")
+        proc.stdin.write(json.dumps({
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+        }) + "\n")
         proc.stdin.flush()
 
-        # Tool calls
+        # 🔥 REAL MCP TOOL CALLS
         smile = call_tool(proc, "smile_overview")
         knowledge = call_tool(proc, "query_knowledge", {"query": user_query})
         cases = call_tool(proc, "get_case_studies")
 
+        # Safe termination
         proc.terminate()
+        try:
+            proc.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            proc.kill()
 
-        # Handle garbage output
-        if not smile or "[ERROR]" in smile:
-            smile = "[Fallback] Unable to retrieve SMILE overview"
+        # Output validation
+        smile = sanitize_output(smile, "[Fallback] Unable to retrieve SMILE overview")
+        knowledge = sanitize_output(knowledge, "[Fallback] Knowledge unavailable")
+        cases = sanitize_output(cases, "[Fallback] No case studies found")
 
-        if not knowledge or "[ERROR]" in knowledge:
-            knowledge = "[Fallback] Knowledge unavailable"
-
-        if not cases or "[ERROR]" in cases:
-            cases = "[Fallback] No case studies found"
-
+        # Final output
+        print("\n--- Agent Output ---\n")
         print(smile[:100])
         print(knowledge[:100])
         print(cases[:100])

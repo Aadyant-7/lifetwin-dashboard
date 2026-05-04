@@ -26,16 +26,6 @@ Output: “Your energy dips after 2 PM, consider taking a short break.”
 
 The agent checks for invalid inputs such as missing or negative values and returns appropriate messages.
 
-## Code Example
-
-The agent calls multiple tools:
-
-- smile_overview()
-- query_knowledge()
-- analyze_patterns()
-
-It also includes error handling using try/except blocks to ensure stability.
-
 ## LPI Tool Usage
 
 The agent explicitly calls LPI tools such as:

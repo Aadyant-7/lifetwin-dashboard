@@ -35,3 +35,6 @@ The agent explicitly calls LPI tools such as:
 - get_case_studies  
 
 These calls are made using subprocess to interact with the LPI sandbox.
+
+
+<img width="1595" height="982" alt="dashboard" src="https://github.com/user-attachments/assets/23cdd396-e858-4548-87e9-535813d9d037" />
